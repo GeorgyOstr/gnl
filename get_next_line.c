@@ -6,22 +6,22 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 19:47:04 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/27 21:04:26 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*ft_strjoinf(char *s1, char const *s2)
+char	*ft_strjoinf(t_stash *s1, char const *s2)
 {
 	ssize_t	len1;
 	ssize_t	len2;
 	char	*buf;
 
-	if (!s1 || !s2)
+	if (!s1->s || !s2)
 		return (NULL);
 	len1 = 0;
-	while (s1[len1])
+	while (s1->s[len1])
 		len1++;
 	len2 = 0;
 	while (s2[len2])
@@ -33,27 +33,27 @@ char	*ft_strjoinf(char *s1, char const *s2)
 	while (--len2 >= 0)
 		buf[len1 + len2] = s2[len2];
 	while (--len1 >= 0)
-		buf[len1] = s1[len1];
-	free(s1);
+		buf[len1] = s1->s[len1];
+	free(s1->s);
 	return (buf);
 }
 
 //Contains EOF or ENDL -> 1 else 0
-int	has_line(char *s, size_t len)
+int	has_line(t_stash *s)
 {
-	size_t	i;
+	ssize_t	i;
 
 	i = 0;
-	while (i < len)
+	while (i < s->len)
 	{
-		if (!s[i] || s[i] == '\n')
+		if (!s->s[i] || s->s[i] == '\n')
 			return (1);
 		i++;
 	}
 	return (0);
 }
 
-char	*get_line(char **s, int fd, size_t len)
+int	read_until_nl(t_stash *s)
 {
 	char	*buffer;
 	int		read_res;
@@ -61,96 +61,90 @@ char	*get_line(char **s, int fd, size_t len)
 	read_res = 1;
 	buffer = malloc(BUFFER_SIZE + 1);
 	if (!buffer)
-		return (NULL);
-	while (read_res > 0 && !(has_line(*s, len)))
+		return (0);
+	while (read_res > 0 && !(has_line(s)))
 	{
-		read_res = read(fd, buffer, BUFFER_SIZE);
-		if (read_res <= 0)
+		read_res = read(s->fd, buffer, BUFFER_SIZE);
+		if (read_res < 0)
+			return (0);
+		s->s = ft_strjoinf(s, buffer);
+		if (!(s->s))
 		{
 			free(buffer);
-			return (NULL);
-		}
-		*s = ft_strjoinf(*s, buffer);
-		if (!(*s))
-		{
-			free(buffer);
-			return (NULL);
+			return (0);
 		}
 	}
 	free(buffer);
-	return (*s);
+	return (1);
 }
 
-s_stash	init(void)
+char	*stash_set(t_stash *s_in, char *s, int fd, int len)
 {
-	s_stash	stash;
+	t_stash	stash;
 
-	stash.s = NULL;
-	stash.fd = -1;
-	stash.len = 0;
-	return s;
+	free(s_in->s);
+	stash.s = s;
+	stash.fd = fd;
+	stash.len = len;
+	*s_in = stash;
+	return (stash.s);
 }
 
-int	make_line(char **s, char **out, ssize_t curr_len)
+//fail = 0 endl = 1 eof = 2
+int	make_line(t_stash *s, char **out)
 {
 	ssize_t	i;
 	ssize_t	len;
+	char	*tmp;
 
 	i = 0;
-	(void)curr_len;
-	if (!s || !*s)
+	if (!s->s)
 		return (-1);
-	while ((*s)[i] && (*s)[i] != '\n')
+	while (s->s[i] && s->s[i] != '\n')
 		i++;
 	len = i;
 	*out = malloc(len + 1);
 	if (!out)
-		return (-1);
+		return (0);
 	i = 0;
-	while ((*s)[i] && (*s)[i] != '\n')
+	while (s->s[i] && s->s[i] != '\n')
 	{
-		(*out)[i] = (*s)[i];
+		(*out)[i] = s->s[i];
 		i++;
 	}
-	if ((*s)[len] == '\0')
+	tmp = malloc(s->len - i);
+	if (!tmp)
+	{
+		free(out);
 		return (0);
+	}
+	while (i < s->len)
+	{
+		tmp[i - len] = s->s[i];
+		i++;
+	}
+	stash_set(s, tmp, -1, 0);
+	if (s->s[len] == '\0')
+		return (2);
 	return (1);
 }
 
 char	*get_next_line(int fd)
 {
-	static char		*s = NULL;
-	static int		curr_fd = -1;
-	static size_t	curr_len = 0;
+	static t_stash	s;
+	int				result_ok;
 	char			*tmp;
-	int				i;
 
-	i = 0;
-	if (BUFFER_SIZE <= 0 || fd < 0 || (s != NULL && curr_fd != fd))
-	{
-		free(s);
-		return (NULL);
-	}
-	curr_fd = fd;
-	tmp = get_line(&s, fd, curr_len);
-	if (!tmp)
-	{
-		free(s);
-		return (NULL);
-	}
-	i = make_line(&s, &tmp, curr_len);
-	if (i == -1)
-	{
-		free(s);
-		return (NULL);
-	}
-	else if (i == 0)
-	{
-		free(s);
-		s = NULL;
-		curr_fd = -1;
-		curr_len = 0;
-		return (tmp);
-	}
+	if (BUFFER_SIZE <= 0 || fd < 0 || (s.s != NULL && s.fd != fd))
+		return (stash_set(&s, NULL, -1, 0));
+	s.fd = fd;
+	result_ok = read_until_nl(&s);
+	if (!result_ok)
+		return (stash_set(&s, NULL, -1, 0));
+	result_ok = make_line(&s, &tmp);
+	if (!result_ok)
+		return (stash_set(&s, NULL, -1, 0));
+	else if (result_ok == 2)
+		stash_set(&s, NULL, -1, 0);
 	return (tmp);
 }
