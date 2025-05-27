@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 17:18:18 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/27 19:47:04 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,12 +81,23 @@ char	*get_line(char **s, int fd, size_t len)
 	return (*s);
 }
 
+s_stash	init(void)
+{
+	s_stash	stash;
+
+	stash.s = NULL;
+	stash.fd = -1;
+	stash.len = 0;
+	return s;
+}
+
 int	make_line(char **s, char **out, ssize_t curr_len)
 {
 	ssize_t	i;
 	ssize_t	len;
 
 	i = 0;
+	(void)curr_len;
 	if (!s || !*s)
 		return (-1);
 	while ((*s)[i] && (*s)[i] != '\n')
