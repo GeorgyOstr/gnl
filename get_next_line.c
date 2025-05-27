@@ -6,13 +6,13 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 10:17:30 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/27 16:59:39 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*ft_strjoin(char const *s1, char const *s2)
+char	*ft_strjoinf(char *s1, char const *s2)
 {
 	ssize_t	len1;
 	ssize_t	len2;
@@ -40,9 +40,9 @@ char	*ft_strjoin(char const *s1, char const *s2)
 
 char	*get_line(char **s, int fd, size_t len)
 {
-	char 	*buffer;
+	char	*buffer;
 	int		read_res;
-	
+
 	read_res = 1;
 	buffer = malloc(BUFFER_SIZE + 1);
 	if (!buffer)
@@ -55,7 +55,7 @@ char	*get_line(char **s, int fd, size_t len)
 			free(buffer);
 			return (NULL);
 		}
-		*s = ft_strjoin(*s, buffer);
+		*s = ft_strjoinf(*s, buffer);
 		if (!(*s))
 		{
 			free(buffer);
@@ -66,14 +66,14 @@ char	*get_line(char **s, int fd, size_t len)
 	return (*s);
 }
 
-int		make_line(char **s, char **out)
+int	make_line(char **s, char **out)
 {
 	ssize_t	i;
 	ssize_t	len;
-	
+
 	i = 0;
 	if (!s || !*s)
-		return -1;
+		return (-1);
 	while ((*s)[i] && (*s)[i] != '\n')
 		i++;
 	len = i;
@@ -118,9 +118,13 @@ char	*get_next_line(int fd)
 		free(s);
 		return (NULL);
 	}
-	elif (i == 0)
-		return 
+	else if (i == 0)
+	{
+		free(s);
+		s = NULL;
+		curr_fd = -1;
+		curr_len = 0;
+		return (tmp);
+	}
 	return (tmp);
 }
-
-

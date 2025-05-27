@@ -6,12 +6,18 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:43:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 02:06:50 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/27 16:55:15 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
+
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE	42
+# endif
+
+# include <stdlib.h>
 
 typedef struct s_stash
 {
