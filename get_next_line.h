@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:43:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 16:55:15 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/27 17:19:02 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # endif
 
 # include <stdlib.h>
+# include <unistd.h>
 
 typedef struct s_stash
 {

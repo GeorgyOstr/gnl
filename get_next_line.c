@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 16:59:39 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/27 17:18:18 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,21 @@ char	*ft_strjoinf(char *s1, char const *s2)
 	return (buf);
 }
 
+//Contains EOF or ENDL -> 1 else 0
+int	has_line(char *s, size_t len)
+{
+	size_t	i;
+
+	i = 0;
+	while (i < len)
+	{
+		if (!s[i] || s[i] == '\n')
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
 char	*get_line(char **s, int fd, size_t len)
 {
 	char	*buffer;
@@ -47,7 +62,7 @@ char	*get_line(char **s, int fd, size_t len)
 	buffer = malloc(BUFFER_SIZE + 1);
 	if (!buffer)
 		return (NULL);
-	while (read_res > 0 && !(has_line(*s)))
+	while (read_res > 0 && !(has_line(*s, len)))
 	{
 		read_res = read(fd, buffer, BUFFER_SIZE);
 		if (read_res <= 0)
@@ -66,7 +81,7 @@ char	*get_line(char **s, int fd, size_t len)
 	return (*s);
 }
 
-int	make_line(char **s, char **out)
+int	make_line(char **s, char **out, ssize_t curr_len)
 {
 	ssize_t	i;
 	ssize_t	len;
@@ -86,7 +101,7 @@ int	make_line(char **s, char **out)
 		(*out)[i] = (*s)[i];
 		i++;
 	}
-	if (s[len] == '\0')
+	if ((*s)[len] == '\0')
 		return (0);
 	return (1);
 }
@@ -100,7 +115,7 @@ char	*get_next_line(int fd)
 	int				i;
 
 	i = 0;
-	if (BUFFER_SIZE <= 0 || fd < 0 || (*s != NULL && curr_fd != fd))
+	if (BUFFER_SIZE <= 0 || fd < 0 || (s != NULL && curr_fd != fd))
 	{
 		free(s);
 		return (NULL);
