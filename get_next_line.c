@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 21:04:26 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/27 23:51:48 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,20 +20,16 @@ char	*ft_strjoinf(t_stash *s1, char const *s2)
 
 	if (!s1->s || !s2)
 		return (NULL);
-	len1 = 0;
-	while (s1->s[len1])
-		len1++;
-	len2 = 0;
-	while (s2[len2])
-		len2++;
-	buf = malloc(len1 + len2 + 1);
+	len1 = s1->len;
+	len2 = BUFFER_SIZE;
+	buf = malloc(len1 + len2);
 	if (!buf)
 		return (NULL);
-	buf[len1 + len2] = '\0';
 	while (--len2 >= 0)
 		buf[len1 + len2] = s2[len2];
 	while (--len1 >= 0)
 		buf[len1] = s1->s[len1];
+	s1->len = s1->len + BUFFER_SIZE;
 	free(s1->s);
 	return (buf);
 }
@@ -66,7 +62,10 @@ int	read_until_nl(t_stash *s)
 	{
 		read_res = read(s->fd, buffer, BUFFER_SIZE);
 		if (read_res < 0)
+		{
+			free(buffer);
 			return (0);
+		}
 		s->s = ft_strjoinf(s, buffer);
 		if (!(s->s))
 		{
@@ -123,10 +122,11 @@ int	make_line(t_stash *s, char **out)
 		tmp[i - len] = s->s[i];
 		i++;
 	}
-	stash_set(s, tmp, -1, 0);
+	i = 1;
 	if (s->s[len] == '\0')
-		return (2);
-	return (1);
+		i = 2;
+	stash_set(s, tmp, -1, 0);
+	return ((int)i);
 }
 
 char	*get_next_line(int fd)
