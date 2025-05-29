@@ -11,140 +11,183 @@
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include <string.h>
 
-char	*ft_strjoinf(t_stash *s1, char const *s2)
+int	has_endl(char *buf, ssize_t bytes)
 {
-	ssize_t	len1;
-	ssize_t	len2;
-	char	*buf;
-
-	if (!s1->s || !s2)
-		return (NULL);
-	len1 = s1->len;
-	len2 = BUFFER_SIZE;
-	buf = malloc(len1 + len2);
-	if (!buf)
-		return (NULL);
-	while (--len2 >= 0)
-		buf[len1 + len2] = s2[len2];
-	while (--len1 >= 0)
-		buf[len1] = s1->s[len1];
-	s1->len = s1->len + BUFFER_SIZE;
-	free(s1->s);
-	return (buf);
-}
-
-//Contains EOF or ENDL -> 1 else 0
-int	has_line(t_stash *s)
-{
-	ssize_t	i;
+	int	i;
 
 	i = 0;
-	while (i < s->len)
+	while (i < bytes)
 	{
-		if (!s->s[i] || s->s[i] == '\n')
+		if (buf[i++] == '\n')
 			return (1);
-		i++;
 	}
 	return (0);
 }
 
-int	read_until_nl(t_stash *s)
+int separate_endl(t_stash *s, char **ans, ssize_t i)
 {
-	char	*buffer;
-	int		read_res;
+	char 	*t;
 
-	read_res = 1;
-	buffer = malloc(BUFFER_SIZE + 1);
-	if (!buffer)
+	t = malloc(s->len - i - 1);
+	if (!t)
 		return (0);
-	while (read_res > 0 && !(has_line(s)))
+	*ans = malloc(i + 2);
+	if (!(*ans))
 	{
-		read_res = read(s->fd, buffer, BUFFER_SIZE);
-		if (read_res < 0)
-		{
-			free(buffer);
-			return (0);
-		}
-		s->s = ft_strjoinf(s, buffer);
-		if (!(s->s))
-		{
-			free(buffer);
-			return (0);
-		}
+		free(t);
+		return (0);
 	}
-	free(buffer);
+	memcpy(*ans, s->s, i + 1);
+	(*ans)[i + 1] = '\0';
+	memcpy(t, s->s + i + 1, s->len - i - 1);
+	free(s->s);
+	s->s = t;
+	s->len = s->len - i - 1;
+	if (!has_endl(s->s, s->len))
+		s->endl = 0;
 	return (1);
 }
 
-char	*stash_set(t_stash *s_in, char *s, int fd, int len)
-{
-	t_stash	stash;
-
-	free(s_in->s);
-	stash.s = s;
-	stash.fd = fd;
-	stash.len = len;
-	*s_in = stash;
-	return (stash.s);
-}
-
-//fail = 0 endl = 1 eof = 2
-int	make_line(t_stash *s, char **out)
+int make_line(t_stash *s, char **ans, int *ended)
 {
 	ssize_t	i;
-	ssize_t	len;
-	char	*tmp;
 
 	i = 0;
-	if (!s->s)
-		return (-1);
-	while (s->s[i] && s->s[i] != '\n')
-		i++;
-	len = i;
-	*out = malloc(len + 1);
-	if (!out)
-		return (0);
-	i = 0;
-	while (s->s[i] && s->s[i] != '\n')
+	while(i < s->len)
 	{
-		(*out)[i] = s->s[i];
+		if (s->s[i] == '\n')
+		{
+			if (!separate_endl(s, ans, i))
+				return (0);
+			return (1);
+		}
 		i++;
 	}
-	tmp = malloc(s->len - i);
+	*ans = malloc(s->len + 1);
+	if (!ans)
+		return(0);
+	memcpy(*ans, s->s, s->len);
+	(*ans)[s->len] = '\0';
+	*ended = 1;
+	return (1);
+}
+
+int	update(t_stash *s, const char *buf, ssize_t bytes)
+{
+	char	*tmp;
+
+	tmp = malloc(s->len + bytes);
 	if (!tmp)
-	{
-		free(out);
 		return (0);
-	}
-	while (i < s->len)
+	memcpy(tmp, s->s, s->len);
+	memcpy(tmp + s->len, buf, bytes);
+	free(s->s);
+	s->s = tmp;
+	s->len = s->len + bytes;
+	return (1);
+}
+
+int	read_until_nl(t_stash *s, int fd)
+{
+	char	*buf;
+	ssize_t	bytes;
+	
+	buf = malloc(BUFFER_SIZE);
+	if (!buf)
+		return (0);
+	bytes = read(fd, buf, BUFFER_SIZE);
+	while (bytes > 0)
 	{
-		tmp[i - len] = s->s[i];
-		i++;
+		if (!update(s, buf, bytes))
+		{
+			free(buf);
+			return (0);
+		}
+		if (bytes < BUFFER_SIZE)
+		{
+			s->eof = 1;
+			break ;
+		}
+		if (has_endl(buf, BUFFER_SIZE))
+		{
+			s->endl = 1;
+			break ;
+		}
+		bytes = read(fd, buf, BUFFER_SIZE);
 	}
-	i = 1;
-	if (s->s[len] == '\0')
-		i = 2;
-	stash_set(s, tmp, -1, 0);
-	return ((int)i);
+	free(buf);
+	if (bytes < 0)
+		return (0);
+	return (1);
+}
+
+char	*set_stash(t_stash *s, char *str, int fd, ssize_t len)
+{
+	free(s->s);
+	s->eof = 0;
+	s->endl = 0;
+	s->finished = 0;
+	s->s = str;
+	s->fd = fd;
+	s->len = len;
+	return (s->s);
 }
 
 char	*get_next_line(int fd)
 {
 	static t_stash	s;
-	int				result_ok;
-	char			*tmp;
+	static char		*ans;
+	int 			ended;
 
-	if (BUFFER_SIZE <= 0 || fd < 0 || (s.s != NULL && s.fd != fd))
-		return (stash_set(&s, NULL, -1, 0));
+	ans = NULL;
+	ended = 0;
+	if (s.finished || BUFFER_SIZE <= 0 || fd < 0 || (s.s != NULL && s.fd != fd))
+		return (set_stash(&s, NULL, 0, 0));
 	s.fd = fd;
-	result_ok = read_until_nl(&s);
-	if (!result_ok)
-		return (stash_set(&s, NULL, -1, 0));
-	result_ok = make_line(&s, &tmp);
-	if (!result_ok)
-		return (stash_set(&s, NULL, -1, 0));
-	else if (result_ok == 2)
-		stash_set(&s, NULL, -1, 0);
-	return (tmp);
+	if (!s.eof && !s.endl)
+	{
+		if (!read_until_nl(&s, fd))
+			return (set_stash(&s, NULL, 0, 0));
+	}
+	if (!make_line(&s, &ans, &ended))
+		return (set_stash(&s, NULL, 0, 0));
+	if (ended)
+	{
+		set_stash(&s, NULL, 0, 0);
+		s.finished = 1;
+	}
+	return (ans);
+}
+
+#include <stdio.h>
+#include <fcntl.h>
+
+int	main(int argc, char **argv)
+{	
+	char	*tmp;
+	int		fd;
+
+	if (argc == 2)
+	{
+		fd = open(argv[1], O_RDONLY);
+		while ((tmp = get_next_line(fd)))
+		{
+			printf("%s", tmp);
+			free(tmp);
+		}	
+		close(fd);	
+	}
+	else
+	{
+		fd = open("f", O_RDONLY);
+		while ((tmp = get_next_line(fd)))
+		{
+			printf("%s", tmp);
+			free(tmp);
+		}
+		close(fd);		
+	}
+	return (0);
 }
