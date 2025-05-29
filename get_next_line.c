@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/29 21:59:35 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/29 22:27:32 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ int	make_line(t_stash *s, char **ans, int *ended)
 		i++;
 	}
 	*ans = malloc(s->len + 1);
-	if (!ans)
+	if (!(*ans))
 		return (0);
 	memcpy(*ans, s->s, s->len);
 	(*ans)[s->len] = '\0';
@@ -110,7 +110,7 @@ int	read_until_nl(t_stash *s, int fd)
 			s->eof = 1;
 			break ;
 		}
-		if (has_endl(buf, BUFFER_SIZE))
+		if (has_endl(buf, bytes))
 		{
 			s->endl = 1;
 			break ;
@@ -125,10 +125,17 @@ int	read_until_nl(t_stash *s, int fd)
 
 char	*set_stash(t_stash *s, char *str, int fd, ssize_t len)
 {
+	int	t_eof;
+	int	t_endl;
+	int	t_finished;
+	
+	t_endl = s->endl;
+	t_eof = s->eof;
+	t_finished = s->finished;
 	free(s->s);
-	s->eof = 0;
-	s->endl = 0;
-	s->finished = 0;
+	s->eof = t_eof;
+	s->endl = t_endl;
+	s->finished = t_finished;
 	s->s = str;
 	s->fd = fd;
 	s->len = len;
@@ -138,7 +145,7 @@ char	*set_stash(t_stash *s, char *str, int fd, ssize_t len)
 char	*get_next_line(int fd)
 {
 	static t_stash	s;
-	static char		*ans;
+	char			*ans;
 	int				ended;
 
 	ans = NULL;
@@ -151,7 +158,12 @@ char	*get_next_line(int fd)
 		if (!read_until_nl(&s, fd))
 			return (set_stash(&s, NULL, 0, 0));
 	}
-	if (!make_line(&s, &ans, &ended))
+	if (!s.len)
+	{
+		s.finished = 1;
+		return (set_stash(&s, NULL, 0, 0));
+	}
+	if (s.s && !make_line(&s, &ans, &ended))
 		return (set_stash(&s, NULL, 0, 0));
 	if (ended)
 	{
@@ -161,33 +173,36 @@ char	*get_next_line(int fd)
 	return (ans);
 }
 
-//#include <stdio.h>
-//#include <fcntl.h>
-//
-//int	main(int argc, char **argv)
-//{	
-//	char	*tmp;
-//	int		fd;
-//
-//	if (argc == 2)
-//	{
-//		fd = open(argv[1], O_RDONLY);
-//		while ((tmp = get_next_line(fd)))
-//		{
-//			printf("%s", tmp);
-//			free(tmp);
-//		}	
-//		close(fd);	
-//	}
-//	else
-//	{
-//		fd = open("f", O_RDONLY);
-//		while ((tmp = get_next_line(fd)))
-//		{
-//			printf("%s", tmp);
-//			free(tmp);
-//		}
-//		close(fd);		
-//	}
-//	return (0);
-//}
+// #include <stdio.h>
+// #include <fcntl.h>
+
+// int	main(int argc, char **argv)
+// {	
+// 	char	*tmp;
+// 	int		fd;
+
+// 	if (argc == 2)
+// 	{
+// 		fd = open(argv[1], O_RDONLY);
+// 		while ((tmp = get_next_line(fd)))
+// 		{
+// 			printf("%s", tmp);
+// 			free(tmp);
+// 		}	
+// 		close(fd);	
+// 	}
+// 	else
+// 	{
+// 		int i = 0;
+// 		fd = open("f", O_RDONLY);
+// 		while (i < 3)
+// 		{
+// 			tmp = get_next_line(fd);
+// 			printf("Line: '%s'\n", tmp);
+// 			free(tmp);
+// 			i++;
+// 		}
+// 		close(fd);		
+// 	}
+// 	return (0);
+// }
