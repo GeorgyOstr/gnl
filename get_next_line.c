@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 23:51:48 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/29 21:59:35 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,9 @@ int	has_endl(char *buf, ssize_t bytes)
 	return (0);
 }
 
-int separate_endl(t_stash *s, char **ans, ssize_t i)
+int	separate_endl(t_stash *s, char **ans, ssize_t i)
 {
-	char 	*t;
+	char	*t;
 
 	t = malloc(s->len - i - 1);
 	if (!t)
@@ -50,12 +50,12 @@ int separate_endl(t_stash *s, char **ans, ssize_t i)
 	return (1);
 }
 
-int make_line(t_stash *s, char **ans, int *ended)
+int	make_line(t_stash *s, char **ans, int *ended)
 {
 	ssize_t	i;
 
 	i = 0;
-	while(i < s->len)
+	while (i < s->len)
 	{
 		if (s->s[i] == '\n')
 		{
@@ -67,7 +67,7 @@ int make_line(t_stash *s, char **ans, int *ended)
 	}
 	*ans = malloc(s->len + 1);
 	if (!ans)
-		return(0);
+		return (0);
 	memcpy(*ans, s->s, s->len);
 	(*ans)[s->len] = '\0';
 	*ended = 1;
@@ -93,7 +93,7 @@ int	read_until_nl(t_stash *s, int fd)
 {
 	char	*buf;
 	ssize_t	bytes;
-	
+
 	buf = malloc(BUFFER_SIZE);
 	if (!buf)
 		return (0);
@@ -139,7 +139,7 @@ char	*get_next_line(int fd)
 {
 	static t_stash	s;
 	static char		*ans;
-	int 			ended;
+	int				ended;
 
 	ans = NULL;
 	ended = 0;
@@ -161,33 +161,33 @@ char	*get_next_line(int fd)
 	return (ans);
 }
 
-#include <stdio.h>
-#include <fcntl.h>
-
-int	main(int argc, char **argv)
-{	
-	char	*tmp;
-	int		fd;
-
-	if (argc == 2)
-	{
-		fd = open(argv[1], O_RDONLY);
-		while ((tmp = get_next_line(fd)))
-		{
-			printf("%s", tmp);
-			free(tmp);
-		}	
-		close(fd);	
-	}
-	else
-	{
-		fd = open("f", O_RDONLY);
-		while ((tmp = get_next_line(fd)))
-		{
-			printf("%s", tmp);
-			free(tmp);
-		}
-		close(fd);		
-	}
-	return (0);
-}
+//#include <stdio.h>
+//#include <fcntl.h>
+//
+//int	main(int argc, char **argv)
+//{	
+//	char	*tmp;
+//	int		fd;
+//
+//	if (argc == 2)
+//	{
+//		fd = open(argv[1], O_RDONLY);
+//		while ((tmp = get_next_line(fd)))
+//		{
+//			printf("%s", tmp);
+//			free(tmp);
+//		}	
+//		close(fd);	
+//	}
+//	else
+//	{
+//		fd = open("f", O_RDONLY);
+//		while ((tmp = get_next_line(fd)))
+//		{
+//			printf("%s", tmp);
+//			free(tmp);
+//		}
+//		close(fd);		
+//	}
+//	return (0);
+//}
