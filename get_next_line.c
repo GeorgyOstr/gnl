@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/31 23:00:20 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/31 23:25:42 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ static char	*reset_stash(t_stash *s)
 
 char	*get_next_line(int fd)
 {
-	static t_stash	s;
+	static t_stash	s = {};
 	char			*ans;
 
 	ans = NULL;
