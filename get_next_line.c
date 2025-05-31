@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <string.h>
 
 int	has_endl(char *buf, ssize_t bytes)
 {
@@ -50,7 +49,7 @@ int	separate_endl(t_stash *s, char **ans, ssize_t i)
 	return (1);
 }
 
-int	make_line(t_stash *s, char **ans, int *ended)
+int	make_line(t_stash *s, char **ans)
 {
 	ssize_t	i;
 
@@ -70,7 +69,7 @@ int	make_line(t_stash *s, char **ans, int *ended)
 		return (0);
 	memcpy(*ans, s->s, s->len);
 	(*ans)[s->len] = '\0';
-	*ended = 1;
+	s->finished = 1;
 	return (1);
 }
 
@@ -89,6 +88,12 @@ int	update(t_stash *s, const char *buf, ssize_t bytes)
 	return (1);
 }
 
+int	buf_free(char *p, int i)
+{
+	free(p);
+	return (i);
+}
+
 int	read_until_nl(t_stash *s, int fd)
 {
 	char	*buf;
@@ -98,23 +103,21 @@ int	read_until_nl(t_stash *s, int fd)
 	if (!buf)
 		return (0);
 	bytes = read(fd, buf, BUFFER_SIZE);
-	while (bytes > 0)
+	if (bytes < 0)
+		return (buf_free(buf, 0));
+	if (bytes == 0)
+		return (buf_free(buf, 1));
+	while (1)
 	{
 		if (!update(s, buf, bytes))
-		{
-			free(buf);
-			return (0);
-		}
+			return (buf_free(buf, 0));
 		if (bytes < BUFFER_SIZE)
 		{
 			s->eof = 1;
-			break ;
+			return (buf_free(buf, 1));
 		}
 		if (has_endl(buf, bytes))
-		{
-			s->endl = 1;
-			break ;
-		}
+			return (buf_free(buf, 1));
 		bytes = read(fd, buf, BUFFER_SIZE);
 	}
 	free(buf);
@@ -123,53 +126,33 @@ int	read_until_nl(t_stash *s, int fd)
 	return (1);
 }
 
-char	*set_stash(t_stash *s, char *str, int fd, ssize_t len)
+char	*reset_stash(t_stash *s)
 {
-	int	t_eof;
-	int	t_endl;
-	int	t_finished;
-	
-	t_endl = s->endl;
-	t_eof = s->eof;
-	t_finished = s->finished;
 	free(s->s);
-	s->eof = t_eof;
-	s->endl = t_endl;
-	s->finished = t_finished;
-	s->s = str;
-	s->fd = fd;
-	s->len = len;
-	return (s->s);
+	s->eof = 0;
+	s->endl = 0;
+	s->finished = 0;
+	s->s = 0;
+	s->fd = 0;
+	s->len = 0;
+	return (NULL);
 }
 
 char	*get_next_line(int fd)
 {
 	static t_stash	s;
 	char			*ans;
-	int				ended;
 
 	ans = NULL;
-	ended = 0;
 	if (s.finished || BUFFER_SIZE <= 0 || fd < 0 || (s.s != NULL && s.fd != fd))
-		return (set_stash(&s, NULL, 0, 0));
+		return (reset_stash(&s));
 	s.fd = fd;
-	if (!s.eof && !s.endl)
-	{
-		if (!read_until_nl(&s, fd))
-			return (set_stash(&s, NULL, 0, 0));
-	}
+	if (!s.eof && !read_until_nl(&s, fd))
+		return (reset_stash(&s));
 	if (!s.len)
-	{
-		s.finished = 1;
-		return (set_stash(&s, NULL, 0, 0));
-	}
-	if (s.s && !make_line(&s, &ans, &ended))
-		return (set_stash(&s, NULL, 0, 0));
-	if (ended)
-	{
-		set_stash(&s, NULL, 0, 0);
-		s.finished = 1;
-	}
+		return (reset_stash(&s));
+	if (!make_line(&s, &ans))
+		return (reset_stash(&s));
 	return (ans);
 }
 
