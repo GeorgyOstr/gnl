@@ -12,6 +12,22 @@
 
 #include "get_next_line.h"
 
+void	ft_memcpy(void *dst, const void *src, size_t n)
+{
+	char		*cdst;
+	const char	*csrc;
+	size_t		i;
+
+	cdst = (char *)dst;
+	csrc = (const char *)src;
+	i = 0;
+	while (i < n)
+	{
+		cdst[i] = csrc[i];
+		i++;
+	}
+}
+
 int	has_endl(char *buf, ssize_t bytes)
 {
 	int	i;
@@ -38,9 +54,9 @@ int	separate_endl(t_stash *s, char **ans, ssize_t i)
 		free(t);
 		return (0);
 	}
-	memcpy(*ans, s->s, i + 1);
+	ft_memcpy(*ans, s->s, i + 1);
 	(*ans)[i + 1] = '\0';
-	memcpy(t, s->s + i + 1, s->len - i - 1);
+	ft_memcpy(t, s->s + i + 1, s->len - i - 1);
 	free(s->s);
 	s->s = t;
 	s->len = s->len - i - 1;
@@ -67,7 +83,7 @@ int	make_line(t_stash *s, char **ans)
 	*ans = malloc(s->len + 1);
 	if (!(*ans))
 		return (0);
-	memcpy(*ans, s->s, s->len);
+	ft_memcpy(*ans, s->s, s->len);
 	(*ans)[s->len] = '\0';
 	s->finished = 1;
 	return (1);
@@ -80,8 +96,8 @@ int	update(t_stash *s, const char *buf, ssize_t bytes)
 	tmp = malloc(s->len + bytes);
 	if (!tmp)
 		return (0);
-	memcpy(tmp, s->s, s->len);
-	memcpy(tmp + s->len, buf, bytes);
+	ft_memcpy(tmp, s->s, s->len);
+	ft_memcpy(tmp + s->len, buf, bytes);
 	free(s->s);
 	s->s = tmp;
 	s->len = s->len + bytes;
