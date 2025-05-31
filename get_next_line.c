@@ -6,17 +6,11 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/31 20:48:42 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/31 21:06:46 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
-static int	buf_free(char *p, int i)
-{
-	free(p);
-	return (i);
-}
 
 static int	read_until_nl(t_stash *s, int fd)
 {
@@ -30,28 +24,25 @@ static int	read_until_nl(t_stash *s, int fd)
 	while (bytes > 0)
 	{
 		if (!update(s, buf, bytes))
-			return (buf_free(buf, 0));
+			return (free(buf), 0);
 		if (bytes == 0)
 		{
 			s->eof = 1;
-			return (buf_free(buf, 1));
+			return (free(buf), 1);
 		}
 		if (has_endl(buf, bytes))
-			return (buf_free(buf, 1));
+			return (free(buf), 1);
 		bytes = read(fd, buf, BUFFER_SIZE);
 	}
-	free(buf);
-	return (bytes >= 0);
+	return (free(buf), bytes >= 0);
 }
 
 static char	*reset_stash(t_stash *s)
 {
+	const t_stash	os = {};
+
 	free(s->s);
-	s->eof = 0;
-	s->finished = 0;
-	s->s = 0;
-	s->fd = 0;
-	s->len = 0;
+	*s = os;
 	return (NULL);
 }
 
