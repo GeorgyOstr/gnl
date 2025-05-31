@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/29 22:27:32 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/31 18:37:48 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ char	*get_next_line(int fd)
 	if (s.finished || BUFFER_SIZE <= 0 || fd < 0 || (s.s != NULL && s.fd != fd))
 		return (reset_stash(&s));
 	s.fd = fd;
-	if (!s.eof && !read_until_nl(&s, fd))
+	if (!s.eof && !has_endl(s.s, s.len) && !read_until_nl(&s, fd))
 		return (reset_stash(&s));
 	if (!s.len)
 		return (reset_stash(&s));
@@ -72,37 +72,3 @@ char	*get_next_line(int fd)
 		return (reset_stash(&s));
 	return (ans);
 }
-
-// #include <stdio.h>
-// #include <fcntl.h>
-
-// int	main(int argc, char **argv)
-// {	
-// 	char	*tmp;
-// 	int		fd;
-
-// 	if (argc == 2)
-// 	{
-// 		fd = open(argv[1], O_RDONLY);
-// 		while ((tmp = get_next_line(fd)))
-// 		{
-// 			printf("%s", tmp);
-// 			free(tmp);
-// 		}	
-// 		close(fd);	
-// 	}
-// 	else
-// 	{
-// 		int i = 0;
-// 		fd = open("f", O_RDONLY);
-// 		while (i < 3)
-// 		{
-// 			tmp = get_next_line(fd);
-// 			printf("Line: '%s'\n", tmp);
-// 			free(tmp);
-// 			i++;
-// 		}
-// 		close(fd);		
-// 	}
-// 	return (0);
-// }
