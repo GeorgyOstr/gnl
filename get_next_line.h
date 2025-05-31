@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:43:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/27 21:02:36 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/31 22:57:57 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ typedef struct s_stash
 {
 	char	*s;
 	int		fd;
-	int		eof;
 	int		finished;
 	ssize_t	len;
 }	t_stash;

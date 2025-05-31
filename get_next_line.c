@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/31 21:06:46 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/31 23:00:20 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,6 @@ static int	read_until_nl(t_stash *s, int fd)
 	{
 		if (!update(s, buf, bytes))
 			return (free(buf), 0);
-		if (bytes == 0)
-		{
-			s->eof = 1;
-			return (free(buf), 1);
-		}
 		if (has_endl(buf, bytes))
 			return (free(buf), 1);
 		bytes = read(fd, buf, BUFFER_SIZE);
@@ -55,7 +50,7 @@ char	*get_next_line(int fd)
 	if (s.finished || BUFFER_SIZE <= 0 || fd < 0 || (s.s != NULL && s.fd != fd))
 		return (reset_stash(&s));
 	s.fd = fd;
-	if (!s.eof && !has_endl(s.s, s.len) && !read_until_nl(&s, fd))
+	if (!has_endl(s.s, s.len) && !read_until_nl(&s, fd))
 		return (reset_stash(&s));
 	if (!s.len)
 		return (reset_stash(&s));
