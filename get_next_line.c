@@ -119,11 +119,7 @@ int	read_until_nl(t_stash *s, int fd)
 	if (!buf)
 		return (0);
 	bytes = read(fd, buf, BUFFER_SIZE);
-	if (bytes < 0)
-		return (buf_free(buf, 0));
-	if (bytes == 0)
-		return (buf_free(buf, 1));
-	while (1)
+	while (bytes > 0)
 	{
 		if (!update(s, buf, bytes))
 			return (buf_free(buf, 0));
