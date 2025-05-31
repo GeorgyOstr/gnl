@@ -6,7 +6,7 @@
 /*   By: gostroum <gostroum@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/27 01:47:44 by gostroum          #+#    #+#             */
-/*   Updated: 2025/05/31 18:37:48 by gostroum         ###   ########.fr       */
+/*   Updated: 2025/05/31 20:48:42 by gostroum         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ static int	read_until_nl(t_stash *s, int fd)
 	{
 		if (!update(s, buf, bytes))
 			return (buf_free(buf, 0));
-		if (bytes < BUFFER_SIZE)
+		if (bytes == 0)
 		{
 			s->eof = 1;
 			return (buf_free(buf, 1));
