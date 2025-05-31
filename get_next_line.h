@@ -29,6 +29,12 @@ typedef struct s_stash
 	ssize_t	len;
 }	t_stash;
 
+void	ft_memcpy(void *dst, const void *src, size_t n);
+int		has_endl(char *buf, ssize_t bytes);
+int		update(t_stash *s, const char *buf, ssize_t bytes);
+int		separate_endl(t_stash *s, char **ans, ssize_t i);
+int		make_line(t_stash *s, char **ans);
+
 char	*get_next_line(int fd);
 
 #endif
