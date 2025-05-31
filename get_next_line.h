@@ -25,7 +25,6 @@ typedef struct s_stash
 	char	*s;
 	int		fd;
 	int		eof;
-	int		endl;
 	int		finished;
 	ssize_t	len;
 }	t_stash;

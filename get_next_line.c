@@ -60,8 +60,6 @@ int	separate_endl(t_stash *s, char **ans, ssize_t i)
 	free(s->s);
 	s->s = t;
 	s->len = s->len - i - 1;
-	if (!has_endl(s->s, s->len))
-		s->endl = 0;
 	return (1);
 }
 
@@ -133,16 +131,13 @@ int	read_until_nl(t_stash *s, int fd)
 		bytes = read(fd, buf, BUFFER_SIZE);
 	}
 	free(buf);
-	if (bytes < 0)
-		return (0);
-	return (1);
+	return (bytes >= 0);
 }
 
 char	*reset_stash(t_stash *s)
 {
 	free(s->s);
 	s->eof = 0;
-	s->endl = 0;
 	s->finished = 0;
 	s->s = 0;
 	s->fd = 0;
